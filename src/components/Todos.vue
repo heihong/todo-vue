@@ -35,7 +35,7 @@
             <label :for="'todo' + index" @dblclick="editTodo(todo)">{{
               todo.name
             }}</label>
-            <button class="destroy" @click.prevent="deleteTodo()"></button>
+            <button class="destroy" @click.prevent="deleteTodo(todo)"></button>
           </div>
           <input
             type="text"
@@ -90,20 +90,22 @@
   </section>
 </template>
 
-<script>
-import { Component, Vue } from "vue-property-decorator";
+<script lang="ts">
+import { Component, Prop, Vue, Emit, Watch } from "vue-property-decorator";
+interface Itodo {
+  name: string;
+  completed: boolean;
+}
+
 @Component
 export default class Todos extends Vue {
-  todos = [
-    {
-      name: "Tache de test",
-      completed: false,
-    },
-  ];
+  @Prop({ default: () => [] }) public value!: any;
+
+  todos: any = this.value;
   newTodo = "";
   filter = "all";
-  editing = null;
-  oldTodo = null;
+  editing: any = null;
+  oldTodo: any = null;
 
   addTodo() {
     this.todos.push({
@@ -114,19 +116,28 @@ export default class Todos extends Vue {
     this.newTodo = "";
   }
 
-  deleteTodo(todo) {
-    this.todos = this.todos.filter((i) => i !== todo);
+  @Watch("value")
+  onValueChanged(val: Itodo, oldVal: Itodo) {
+    this.todos = val;
   }
 
+  @Emit("input")
+  deleteTodo(todo: Itodo) {
+    this.todos = this.todos.filter((i: Itodo) => i !== todo);
+    return this.todos;
+  }
+
+  @Emit("input")
   delecteCompleted() {
-    this.todos = this.todos.filter((todo) => todo.completed === false);
+    this.todos = this.todos.filter((todo: Itodo) => todo.completed === false);
+    return this.todos;
   }
 
   get remaining() {
-    return this.todos.filter((todo) => !todo.completed).length;
+    return this.todos.filter((todo: Itodo) => !todo.completed).length;
   }
 
-  editTodo(todo) {
+  editTodo(todo: Itodo): void {
     this.editing = todo;
     this.oldTodo = todo.name;
   }
@@ -141,7 +152,7 @@ export default class Todos extends Vue {
   }
 
   get completed() {
-    return this.todos.filter((todo) => todo.completed).length;
+    return this.todos.filter((todo: Itodo) => todo.completed).length;
   }
 
   get hasTodos() {
@@ -150,9 +161,9 @@ export default class Todos extends Vue {
 
   get filterTodos() {
     if (this.filter === "todo") {
-      return this.todos.filter((todo) => !todo.completed);
+      return this.todos.filter((todo: Itodo) => !todo.completed);
     } else if (this.filter === "done") {
-      return this.todos.filter((todo) => todo.completed);
+      return this.todos.filter((todo: Itodo) => todo.completed);
     }
     return this.todos;
   }
@@ -162,7 +173,7 @@ export default class Todos extends Vue {
   }
 
   set allDone(value) {
-    this.todos.forEach((todo) => {
+    this.todos.forEach((todo: Itodo) => {
       todo.completed = value;
     });
   }
